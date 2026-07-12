@@ -1,6 +1,6 @@
 import pytest
 from app import create_app, db
-from models import User
+from models import User, Film, WatchlistEntry
 from services.collection_service import FilmNotFoundError
 from services.watchlist_service import add_to_watchlist, AlreadyInWatchlistError
 
@@ -29,14 +29,40 @@ def sample_user(app):
         return user.id
 
 
+@pytest.fixture
+def sample_film(app):
+    """A film to use in tests."""
+    with app.app_context():
+        film = Film(title="Paddington 2", year=2017, genre="Comedy")
+        db.session.add(film)
+        db.session.commit()
+        return film.id
+
+
 def test_add_to_watchlist_nonexistent_film_raises(app, sample_user):
     """
     Adding a film_id that doesn't exist in the database should raise
     FilmNotFoundError, not a database integrity error.
     """
     with app.app_context():
-        # Using a fake integer ID to match the pre-rebase db.Integer schema
-        fake_film_id = 999999
+        fake_film_id = "00000000-0000-0000-0000-000000000000"
 
         with pytest.raises(FilmNotFoundError):
             add_to_watchlist(user_id=sample_user, film_id=fake_film_id)
+
+
+def test_add_to_watchlist_duplicate_raises(app, sample_user, sample_film):
+    """
+    Adding the same film twice to the watchlist should raise
+    AlreadyInWatchlistError, not silently create a duplicate entry.
+    """
+    with app.app_context():
+        add_to_watchlist(user_id=sample_user, film_id=sample_film)
+
+        with pytest.raises(AlreadyInWatchlistError):
+            add_to_watchlist(user_id=sample_user, film_id=sample_film)
+
+        count = WatchlistEntry.query.filter_by(
+            user_id=sample_user, film_id=sample_film
+        ).count()
+        assert count == 1
