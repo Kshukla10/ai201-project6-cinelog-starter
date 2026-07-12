@@ -82,3 +82,28 @@ it for a month, so its spot at the top of a recency sort quickly stops
 meaning anything. I agree with `date_added.desc()` for consistency with
 the rest of the app, but the order shouldn't be fixed — a toggle would
 serve both "what did I just add" and "let me find something specific."
+
+## Comment 6 — Rebase
+
+**What conflicted:**
+`.gitignore` had a straightforward conflict (both my branch and `main` added
+one independently — resolved by merging both sets of entries). The more
+significant issue surfaced after the rebase completed: `main`'s UUID
+refactor conflict resolution had dropped the `WatchlistEntry` model
+entirely from `models.py`, and `Film.id` was now `db.String(36)` (UUID)
+instead of `db.Integer`.
+
+**How I resolved it:**
+Re-added the `WatchlistEntry` model to `models.py`, updating `film_id` to
+`db.String(36)` with a `db.ForeignKey("film.id")` to match the new UUID
+type used across `Film` and `CollectionEntry`. Updated the stale docstring
+in `add_to_watchlist()` (previously noting `film_id (int)` as a pre-refactor
+type) to reflect the UUID string type. Updated
+`test_add_to_watchlist_nonexistent_film_raises` to use a UUID-format fake
+ID instead of an integer, matching the pattern in `test_collection.py`.
+
+**How I verified no conflict remains:**
+Ran `git log --oneline --graph` to confirm a single linear history with no
+merge commits. Ran the full test suite (`pytest tests/ -v`) — all tests
+pass, confirming the watchlist code is fully consistent with the new UUID
+schema.
