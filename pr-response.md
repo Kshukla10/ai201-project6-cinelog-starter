@@ -129,6 +129,21 @@ merge commits. Ran the full test suite (`pytest tests/ -v`) — all tests
 pass, confirming the watchlist code is fully consistent with the new UUID
 schema.
 
+## Stretch Feature — Second Test
+
+**What I added:** `test_add_to_watchlist_duplicate_raises`, which confirms
+that adding the same film to a user's watchlist twice raises
+`AlreadyInWatchlistError` on the second attempt, and that only one
+`WatchlistEntry` row exists afterward (no silent duplicate). Modeled
+directly on `test_add_to_collection_duplicate_raises` in
+`test_collection.py`.
+
+**Why I chose this edge case:** The nonexistent-film test (Comment 3) only
+covers the film-lookup failure path. The deduplication logic added in
+Comment 2 had no direct test coverage of its own — this closes that gap by
+testing the actual duplicate-prevention behavior rather than just the
+unrelated not-found case.
+
 ## PR Description
 
 **What this feature does:**
