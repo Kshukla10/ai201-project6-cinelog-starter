@@ -8,5 +8,7 @@
 `services/watchlist_service.py` to match the project's `verb_to_noun`
 convention used by `add_to_collection()`. Updated the import and call site
 in `routes/watchlist.py`.
-**How I verified:** Ran the full test suite
-(`pytest tests/ -v`) to confirm nothing broke.
+**How I verified:** Searched the project for any remaining references to
+`save_to_watchlist` (found none) and confirmed `add_to_watchlist` appears
+in exactly the three expected places (definition + import + call site).
+Ran the full test suite to confirm nothing broke.
